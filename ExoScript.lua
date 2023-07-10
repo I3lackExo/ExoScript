@@ -16,7 +16,6 @@
 		local Version = 4.14
 		local DevName = "I3lackExo."
 		local GTAOVersion = "1.67"
-		--local Hotfix = "Hotfix 1.1"
 		require("lib/C4tScripts/Natives")
 
 		local required <const> = {"lib/C4tScripts/Natives.lua"}
