@@ -13,7 +13,7 @@
 
 	-- [[ Locals ]]
 		local Name = "ExoScript"
-		local Version = 4.14
+		local Version = 4.15
 		local DevName = "I3lackExo."
 		local GTAOVersion = "1.67"
 		require("lib/C4tScripts/Natives")
@@ -933,7 +933,7 @@
 					menu.trigger_commands("historyadd "..name)
 				end)end
 		function PlayerlistFeatures(pid)
-			menu.divider(menu.player_root(pid), "~~~> MiradeliaX <~~~")
+			menu.divider(menu.player_root(pid), "~~~> ExoScript <~~~")
 			end
 			for pid = 0,30 do
 				if players.exists(pid) then
@@ -2229,7 +2229,7 @@
 				local rgb_text = menu.colour(color_settings, "Text Color", {"watermark-tx_color"}, "Select text color", tx_color, true, function(col)
 					tx_color = col end)
 				menu.divider(watermark, "Aditional Settings")
-				menu.list_select(watermark, "First Label", {}, "Change the first label in the watermak", {"Disable", "MiradeliaX", "Version", "Femboy Edition", "UwU"}, show_firstl, function (val)
+				menu.list_select(watermark, "First Label", {}, "Change the first label in the watermak", {"Disable", "ExoScript", "Version", "Femboy Edition", "UwU"}, show_firstl, function (val)
 					show_firstl = val end)
 				menu.toggle(watermark, "Name", {}, "Show the name in the watermark", function(val)
 					show_name = val end, show_name)
@@ -2246,7 +2246,7 @@
 				menu.divider(watermark, "")
 				menu.toggle_loop(watermark, "Enable Watermark", {}, "Enable/Disable Watermark", function()
 					if menu.is_in_screenshot_mode() then return end
-						local wm_text = (show_firstl == 2 and "MiradeliaX" or show_firstl == 5 and "UwU" or show_firstl == 4 and "Femboy Edition" or show_firstl == 3 and utils.editions[utils.edition+1] or "") .. (show_name and " | ".. SOCIALCLUB._SC_GET_NICKNAME() or "") .. (show_rid and " | ".. players.get_rockstar_id(players.user()) or "") .. (show_sessioncode and " | Session Code: ".. get_session_code_for_user() or "") .. (show_gtaversion and " | ".. NETWORK._GET_ONLINE_VERSION() or "") .. (show_players and NETWORK.NETWORK_IS_SESSION_STARTED() and " | Players: "..#players.list(true, true, true) or "") .. (show_time and os.date(" | %H:%M:%S ") or "")
+						local wm_text = (show_firstl == 2 and "ExoScript" or show_firstl == 5 and "UwU" or show_firstl == 4 and "Femboy Edition" or show_firstl == 3 and utils.editions[utils.edition+1] or "") .. (show_name and " | ".. SOCIALCLUB._SC_GET_NICKNAME() or "") .. (show_rid and " | ".. players.get_rockstar_id(players.user()) or "") .. (show_sessioncode and " | Session Code: ".. get_session_code_for_user() or "") .. (show_gtaversion and " | ".. NETWORK._GET_ONLINE_VERSION() or "") .. (show_players and NETWORK.NETWORK_IS_SESSION_STARTED() and " | Players: "..#players.list(true, true, true) or "") .. (show_time and os.date(" | %H:%M:%S ") or "")
 						local tx_size = directx.get_text_size(wm_text, 0.5)
 						directx.draw_rect(x + add_x * 0.5, y, -(tx_size + 0.0105 + add_x), 0.025 + add_y, bg_color)
 						directx.draw_texture(icon, 0.0055, 0.0055, 0.5, 0.5, x - tx_size - 0.0055, y + 0.013, 0, {["r"] = 1.0,["g"] = 1.0,["b"] = 1.0,["a"] = 1.0})
@@ -2520,7 +2520,7 @@
 		
 			crash = menu.list(menu.player_root(pid), "> Kicks & Crashes", {}, "", function(); end)
 				menu.divider(crash, "---> Basic Kicks <---")
-				menu.action(crash, "Host Kick", {"host"}, "Host Kick and logs player data in C4tScripts/MiradeliaX.log", function()
+				menu.action(crash, "Host Kick", {"host"}, "Host Kick and logs player data in C4tScripts/Log.log", function()
 					--menu.trigger_commands("timeout"..PLAYER.GET_PLAYER_NAME(pid).." ".."on")
 					if NETWORK.NETWORK_IS_HOST() then
 						local ip = players.get_connect_ip(pid)
@@ -2528,7 +2528,7 @@
 						log("[Mira] <3 / Host Kick: (Playername: "..name.." / RID: "..players.get_rockstar_id(pid)..")")
 						NETWORK.NETWORK_SESSION_KICK_PLAYER(pid)
 					end end)
-				menu.action(crash, "Orbital Host Kick", {"orbhost"}, "Orbital Host Kick and logs player data in C4tScripts/MiradeliaX.log", function()
+				menu.action(crash, "Orbital Host Kick", {"orbhost"}, "Orbital Host Kick and logs player data in C4tScripts/Log.log", function()
 					--menu.trigger_commands("timeout"..PLAYER.GET_PLAYER_NAME(pid).." ".."on")
 					if NETWORK.NETWORK_IS_HOST() then
 						local ip = players.get_connect_ip(pid)
