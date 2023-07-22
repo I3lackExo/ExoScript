@@ -13,7 +13,7 @@
 
 	-- [[ Locals ]]
 		local Name = "ExoScript"
-		local Version = 4.15
+		local Version = 4.16
 		local DevName = "I3lackExo."
 		local GTAOVersion = "1.67"
 		require("lib/C4tScripts/Natives")
@@ -1578,7 +1578,7 @@
 						WEAPON.SET_CURRENT_PED_WEAPON(players.user_ped(), MISC.GET_HASH_KEY("WEAPON_UNARMED"), true)
 						TASK.TASK_PLAY_ANIM(players.user_ped(), dict, name, 8.0, 8.0, -1, 1, 0, false, false, false)end)
 			menu.divider(selfoptions, "~~~> PVP Options <~~~")
-			menu.toggle_loop(selfoptions, "Better EWO", {}, "Hotkey for EWO is F5.", function()
+			--[[menu.toggle_loop(selfoptions, "Better EWO", {}, "Hotkey for EWO is F5.", function()
 				if PAD.IS_CONTROL_PRESSED(1, 327) then
 					graphics.set_next_ptfx_asset("core")
 					while not graphics.has_named_ptfx_asset_loaded("core") do
@@ -1586,7 +1586,7 @@
 						util.yield(0)
 					end
 					fire.add_explosion(player.get_player_coords(player.player_id()), 2, 1, 1, false, 0, false, player.get_player_ped(player.player_id()))end end)
-					graphics.start_networked_ptfx_non_looped_at_coord("exp_grd_sticky_lod", player.get_player_coords(player.player_id()), v3(0, 180, 0), 1, true, true, true)
+					graphics.start_networked_ptfx_non_looped_at_coord("exp_grd_sticky_lod", player.get_player_coords(player.player_id()), v3(0, 180, 0), 1, true, true, true)]]
 			menu.toggle_loop(selfoptions, "Refill Snacks & Armours Automatically", {}, "", function(toggled)
 				STAT_SET_INT("NO_BOUGHT_YUM_SNACKS", 30)
 				STAT_SET_INT("NO_BOUGHT_HEALTH_SNACKS", 15)
@@ -1628,25 +1628,6 @@
 						gen_fren_funcs(name)
 						::yes::
 					end
-			host = menu.list(onlineoptions, "> Host Settings", {}, "", function(); end)
-				menu.divider(host, "---> Host Options <---")
-				menu.toggle(host, "Block Scripthost Migration", {}, "Only works when you are the host.", function(on)
-					if util.is_session_started() and NETWORK.NETWORK_IS_HOST() then
-						NETWORK.NETWORK_PREVENT_SCRIPT_HOST_MIGRATION()
-						--util.toast("[Mira] <3\n".."> Script Host Migration blocked.")
-					end end)
-				menu.divider(host, "---> Lobby Player Settings <---")
-				menu.slider(host, "Max Players", {}, "Set the max players for the lobby. Only works when host.", 1, 32, 32, 1, function (value)
-					if Stand_internal_script_can_run then
-						NETWORK.NETWORK_SESSION_SET_MATCHMAKING_GROUP_MAX(0, value)
-						--notification.notify("free slots",NETWORK.NETWORK_SESSION_GET_MATCHMAKING_GROUP_FREE(0))
-					end end)
-				menu.slider(host, "Max Spectators", {}, "Set the max spectators for the lobby. Only works when host", 0, 2, 2, 1, function (value)
-					if Stand_internal_script_can_run then
-						NETWORK.NETWORK_SESSION_SET_MATCHMAKING_GROUP_MAX(4, value)
-						--Assistant("> Free slots"..NETWORK.NETWORK_SESSION_GET_MATCHMAKING_GROUP_FREE(4),colors.black)
-						--notification.notify("free slots",NETWORK.NETWORK_SESSION_GET_MATCHMAKING_GROUP_FREE(4))
-					end end)
 			bountyoptions = menu.list(onlineoptions, "> Bounty Options", {}, "", function(); end)
 				menu.divider(bountyoptions, "---> Bounty Loop <---")
 				menu.slider(bountyoptions, "Bounty Amount", {}, "", 0, 10000, 10000, 1, function(s)
@@ -1676,7 +1657,45 @@
 						--Assistant("Sorry, but you don't have a bounty right now which I could remove.", colors.red)
 						util.toast("[Mira] <3\n".."> Sorry, but you don't have a bounty right now which I could remove.")
 					end end)]]	
+			menu.divider(onlineoptions, "---> Host Options <---")
+				menu.toggle(onlineoptions, "Block Scripthost Migration", {}, "Only works when you are the host.", function(on)
+					if util.is_session_started() and NETWORK.NETWORK_IS_HOST() then
+						NETWORK.NETWORK_PREVENT_SCRIPT_HOST_MIGRATION()
+						--util.toast("[Mira] <3\n".."> Script Host Migration blocked.")
+					end end)
+				--[[menu.divider(host, "---> Lobby Player Settings <---")
+				menu.slider(host, "Max Players", {}, "Set the max players for the lobby. Only works when host.", 1, 32, 32, 1, function (value)
+					if Stand_internal_script_can_run then
+						NETWORK.NETWORK_SESSION_SET_MATCHMAKING_GROUP_MAX(0, value)
+						--notification.notify("free slots",NETWORK.NETWORK_SESSION_GET_MATCHMAKING_GROUP_FREE(0))
+					end end)
+				menu.slider(host, "Max Spectators", {}, "Set the max spectators for the lobby. Only works when host", 0, 2, 2, 1, function (value)
+					if Stand_internal_script_can_run then
+						NETWORK.NETWORK_SESSION_SET_MATCHMAKING_GROUP_MAX(4, value)
+						--Assistant("> Free slots"..NETWORK.NETWORK_SESSION_GET_MATCHMAKING_GROUP_FREE(4),colors.black)
+						--notification.notify("free slots",NETWORK.NETWORK_SESSION_GET_MATCHMAKING_GROUP_FREE(4))
+					end end)]]
+			menu.divider(onlineoptions, "---> Nightclub Options <---")
+			menu.toggle_loop(onlineoptions, "Nightclub Popularity", {}, "Keeps the Nightclub Popularity at max", function ()
+				if util.is_session_started() then
+					local ncpop = math.floor(STAT_GET_INT("CLUB_POPULARITY") / 10)
+					if ncpop < 100 then
+						menu.trigger_commands("clubpopularity 100")
+						util.yield(250)
+					end
+				end end)
 			menu.divider(onlineoptions, "---> Protections <---")
+			menu.toggle(onlineoptions, "Block Join (Session Spoof)", {}, "", function(on_toggle)
+					if on_toggle then
+						menu.trigger_commands("spoofsession".." ".."fake")
+						menu.trigger_commands("spoofedhostrid".." ".."1337")
+						menu.trigger_commands("spoofhost".." ".."on")
+						util.toast("[Mira] <3\n".."> I have marked your session as fake so other modders can't join you.")
+					else
+						menu.trigger_commands("spoofsession".." ".."off")
+						menu.trigger_commands("spoofhost".." ".."off")
+						util.toast("[Mira] <3\n".."> I have turned off the block you can now rejoin.")
+					end end)
 			menu.list_select(onlineoptions, "Jammer Delay", {}, "The speed in which your name will flicker at for orbital cannon users.", {"Slow", "Medium", "Fast"}, 3, function(index, value)
 				switch value do
 					case "Slow":
@@ -1737,15 +1756,6 @@
 								util.yield(250)
 							end
 						end
-					end
-				end end)
-			menu.divider(onlineoptions, "---> Nightclub Options <---")
-			menu.toggle_loop(onlineoptions, "Nightclub Popularity", {}, "Keeps the Nightclub Popularity at max", function ()
-				if util.is_session_started() then
-					local ncpop = math.floor(STAT_GET_INT("CLUB_POPULARITY") / 10)
-					if ncpop < 100 then
-						menu.trigger_commands("clubpopularity 100")
-						util.yield(250)
 					end
 				end end)
 		
