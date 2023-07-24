@@ -12,8 +12,8 @@
 -- [[ ExoScript Script ]]
 
 	-- [[ Locals ]]
-		local Name = "ExoScript"
-		local Version = 4.16
+		local Name = "ExoScript for Stand"
+		local Version = 4.17
 		local DevName = "I3lackExo."
 		local GTAOVersion = "1.67"
 		require("lib/C4tScripts/Natives")
@@ -1628,6 +1628,39 @@
 						gen_fren_funcs(name)
 						::yes::
 					end
+			recoveryoptions = menu.list(onlineoptions, "> Recovery Options", {}, "Based on Heist Control Stuff", function(); end)
+				remoteaccess = menu.list(recoveryoptions, "> Remote Access Apps", {}, "", function(); end)
+					menu.divider(remoteaccess, "---> Remote Access Apps <---")
+					menu.action(remoteaccess, "Smuggler (Air Cargo)", {}, "", function()
+						START_SCRIPT("CEO", "appsmuggler")end)
+					menu.action(remoteaccess, "Bunker", {}, "", function()
+						START_SCRIPT("CEO", "appbunkerbusiness")end)
+					menu.action(remoteaccess, "Nightclub", {}, "", function()
+						START_SCRIPT("CEO", "appbusinesshub")end)
+					menu.action(remoteaccess, "Biker Business (Only MC)", {}, "", function()
+						START_SCRIPT("MC", "appbikerbusiness")end)
+					menu.action(remoteaccess, "Touchscreen Terminal (Terrorbyte)", {}, "", function()
+						START_SCRIPT("CEO", "apphackertruck")end)
+					menu.action(remoteaccess, "Master Control Terminal (Arcade)", {}, "", function()
+						START_SCRIPT("CEO", "apparcadebusinesshub")end)
+				menu.divider(recoveryoptions, "---> Casino <---")
+				menu.toggle_loop(recoveryoptions, "Auto Black Jack", {}, "", function()
+					if not (isHelpMessageBeingDisplayed('BJACK_BET') or isHelpMessageBeingDisplayed('BJACK_TURN') or isHelpMessageBeingDisplayed('BJACK_TURN_D') or isHelpMessageBeingDisplayed('BJACK_TURN_S')) then return end
+					if isHelpMessageBeingDisplayed('BJACK_BET') then
+						PAD._SET_CONTROL_NORMAL(2, 204, 1) --max bet
+						PAD._SET_CONTROL_NORMAL(2, 201, 1) --bet
+					else
+						PAD._SET_CONTROL_NORMAL(2, 203, 1) --pass
+					end end)	
+				menu.divider(recoveryoptions, "---> Nightclub Options <---")
+				menu.toggle_loop(recoveryoptions, "Nightclub Popularity", {}, "Keeps the Nightclub Popularity at max", function ()
+					if util.is_session_started() then
+						local ncpop = math.floor(STAT_GET_INT("CLUB_POPULARITY") / 10)
+						if ncpop < 100 then
+							menu.trigger_commands("clubpopularity 100")
+							util.yield(250)
+						end
+					end end)
 			bountyoptions = menu.list(onlineoptions, "> Bounty Options", {}, "", function(); end)
 				menu.divider(bountyoptions, "---> Bounty Loop <---")
 				menu.slider(bountyoptions, "Bounty Amount", {}, "", 0, 10000, 10000, 1, function(s)
@@ -1656,46 +1689,8 @@
 					else
 						--Assistant("Sorry, but you don't have a bounty right now which I could remove.", colors.red)
 						util.toast("[Mira] <3\n".."> Sorry, but you don't have a bounty right now which I could remove.")
-					end end)]]	
-			menu.divider(onlineoptions, "---> Host Options <---")
-				menu.toggle(onlineoptions, "Block Scripthost Migration", {}, "Only works when you are the host.", function(on)
-					if util.is_session_started() and NETWORK.NETWORK_IS_HOST() then
-						NETWORK.NETWORK_PREVENT_SCRIPT_HOST_MIGRATION()
-						--util.toast("[Mira] <3\n".."> Script Host Migration blocked.")
-					end end)
-				--[[menu.divider(host, "---> Lobby Player Settings <---")
-				menu.slider(host, "Max Players", {}, "Set the max players for the lobby. Only works when host.", 1, 32, 32, 1, function (value)
-					if Stand_internal_script_can_run then
-						NETWORK.NETWORK_SESSION_SET_MATCHMAKING_GROUP_MAX(0, value)
-						--notification.notify("free slots",NETWORK.NETWORK_SESSION_GET_MATCHMAKING_GROUP_FREE(0))
-					end end)
-				menu.slider(host, "Max Spectators", {}, "Set the max spectators for the lobby. Only works when host", 0, 2, 2, 1, function (value)
-					if Stand_internal_script_can_run then
-						NETWORK.NETWORK_SESSION_SET_MATCHMAKING_GROUP_MAX(4, value)
-						--Assistant("> Free slots"..NETWORK.NETWORK_SESSION_GET_MATCHMAKING_GROUP_FREE(4),colors.black)
-						--notification.notify("free slots",NETWORK.NETWORK_SESSION_GET_MATCHMAKING_GROUP_FREE(4))
 					end end)]]
-			menu.divider(onlineoptions, "---> Nightclub Options <---")
-			menu.toggle_loop(onlineoptions, "Nightclub Popularity", {}, "Keeps the Nightclub Popularity at max", function ()
-				if util.is_session_started() then
-					local ncpop = math.floor(STAT_GET_INT("CLUB_POPULARITY") / 10)
-					if ncpop < 100 then
-						menu.trigger_commands("clubpopularity 100")
-						util.yield(250)
-					end
-				end end)
-			menu.divider(onlineoptions, "---> Protections <---")
-			menu.toggle(onlineoptions, "Block Join (Session Spoof)", {}, "", function(on_toggle)
-					if on_toggle then
-						menu.trigger_commands("spoofsession".." ".."fake")
-						menu.trigger_commands("spoofedhostrid".." ".."1337")
-						menu.trigger_commands("spoofhost".." ".."on")
-						util.toast("[Mira] <3\n".."> I have marked your session as fake so other modders can't join you.")
-					else
-						menu.trigger_commands("spoofsession".." ".."off")
-						menu.trigger_commands("spoofhost".." ".."off")
-						util.toast("[Mira] <3\n".."> I have turned off the block you can now rejoin.")
-					end end)
+			menu.divider(onlineoptions, "---> Protections<---")
 			menu.list_select(onlineoptions, "Jammer Delay", {}, "The speed in which your name will flicker at for orbital cannon users.", {"Slow", "Medium", "Fast"}, 3, function(index, value)
 				switch value do
 					case "Slow":
@@ -1758,31 +1753,24 @@
 						end
 					end
 				end end)
-		
-		recoveryoptions = menu.list(menu.my_root(), "> Recovery Options", {}, "Based on Heist Control Stuff", function(); end)
-			menu.divider(recoveryoptions, "---> Remote Access Apps <---")
-			menu.action(recoveryoptions, "Smuggler (Air Cargo)", {}, "", function()
-				START_SCRIPT("CEO", "appsmuggler")end)
-			menu.action(recoveryoptions, "Bunker", {}, "", function()
-				START_SCRIPT("CEO", "appbunkerbusiness")end)
-			menu.action(recoveryoptions, "Nightclub", {}, "", function()
-				START_SCRIPT("CEO", "appbusinesshub")end)
-			menu.action(recoveryoptions, "Biker Business (Only MC)", {}, "", function()
-				START_SCRIPT("MC", "appbikerbusiness")end)
-			menu.action(recoveryoptions, "Touchscreen Terminal (Terrorbyte)", {}, "", function()
-				START_SCRIPT("CEO", "apphackertruck")end)
-			menu.action(recoveryoptions, "Master Control Terminal (Arcade)", {}, "", function()
-				START_SCRIPT("CEO", "apparcadebusinesshub")end)
-			menu.divider(recoveryoptions, "---> Casino <---")
-			menu.toggle_loop(recoveryoptions, "Auto Black Jack", {}, "", function()
-				if not (isHelpMessageBeingDisplayed('BJACK_BET') or isHelpMessageBeingDisplayed('BJACK_TURN') or isHelpMessageBeingDisplayed('BJACK_TURN_D') or isHelpMessageBeingDisplayed('BJACK_TURN_S')) then return end
-				if isHelpMessageBeingDisplayed('BJACK_BET') then
-					PAD._SET_CONTROL_NORMAL(2, 204, 1) --max bet
-					PAD._SET_CONTROL_NORMAL(2, 201, 1) --bet
-				else
-					PAD._SET_CONTROL_NORMAL(2, 203, 1) --pass
+			menu.divider(onlineoptions, "---> Blocks <---")
+			menu.toggle(onlineoptions, "Block Scripthost Migration", {}, "Only works when you are the host.", function(on)
+				if util.is_session_started() and NETWORK.NETWORK_IS_HOST() then
+					NETWORK.NETWORK_PREVENT_SCRIPT_HOST_MIGRATION()
+					--util.toast("[Mira] <3\n".."> Script Host Migration blocked.")
 				end end)
-
+			menu.toggle(onlineoptions, "Block Join (Session Spoof)", {}, "", function(on_toggle)
+				if on_toggle then
+					menu.trigger_commands("spoofsession".." ".."fake")
+					menu.trigger_commands("spoofedhostrid".." ".."1337")
+					menu.trigger_commands("spoofhost".." ".."on")
+					util.toast("[Mira] <3\n".."> I have marked your session as fake so other modders can't join you.")
+				else
+					menu.trigger_commands("spoofsession".." ".."off")
+					menu.trigger_commands("spoofhost".." ".."off")
+					util.toast("[Mira] <3\n".."> I have turned off the block you can now rejoin.")
+				end end)
+		
 		weaponsoptions = menu.list(menu.my_root(), "> Weapon Options", {}, "", function(); end)
 			menu.divider(weaponsoptions, "---> Weapon Options <---")
 			weaponattachments = menu.list(weaponsoptions, "> Weapon Attachment Manager", {}, "", function(); end)
@@ -1811,10 +1799,9 @@
 							end)
 						end
 					end
-			menu.divider(weaponsoptions, "---> Aim Range Buff <---")
+			menu.divider(weaponsoptions, "---> Buffs <---")
 				menu.toggle_loop(weaponsoptions, "Max Auto-Aim Range", {""}, "", function()
 					PLAYER.SET_PLAYER_LOCKON_RANGE_OVERRIDE(players.user(), 99999999.0)end)
-				menu.divider(weaponsoptions, "---> Weapon Buffs <---")
 				menu.toggle(weaponsoptions, "Better Precision Rifle", {}, "", function(on_toggle)
 					if on_toggle then
 						menu.trigger_commands("damagemultiplier".." ".."1.60")
@@ -1858,24 +1845,6 @@
 						VEHICLE.SET_VEHICLE_INDICATOR_LIGHTS(vehicle, 1, false)
 					end
 				end end)
-			menu.toggle_loop(vehicleoptions, "Hands Up on Bike", {}, "", function(toggled)
-				if PAD.IS_CONTROL_PRESSED(1, 323) then
-					while not STREAMING.HAS_ANIM_DICT_LOADED("random@mugging3") do
-						STREAMING.REQUEST_ANIM_DICT("random@mugging3")
-						util.yield(100)
-					end
-					if not ENTITY.IS_ENTITY_PLAYING_ANIM(PLAYER.PLAYER_PED_ID(), "random@mugging3", "handsup_standing_base", 3) then
-						--WEAPON.SET_CURRENT_PED_WEAPON(PLAYER.PLAYER_PED_ID(), MISC.GET_HASH_KEY("WEAPON_UNARMED"), true)
-						TASK.TASK_PLAY_ANIM(PLAYER.PLAYER_PED_ID(), "random@mugging3", "handsup_standing_base", 3, 3, -1, 51, 0, false, false, false)
-						STREAMING.REMOVE_ANIM_DICT("random@mugging3")
-						PED.SET_ENABLE_HANDCUFFS(PLAYER.PLAYER_PED_ID(), true)
-					end
-				end
-				if PAD.IS_CONTROL_RELEASED(1, 323) and ENTITY.IS_ENTITY_PLAYING_ANIM(PLAYER.PLAYER_PED_ID(), "random@mugging3", "handsup_standing_base", 3) then
-					TASK.CLEAR_PED_SECONDARY_TASK(PLAYER.PLAYER_PED_ID())
-					PED.SET_ENABLE_HANDCUFFS(PLAYER.PLAYER_PED_ID(), false)
-				end
-				util.yield()end)
 			menu.divider(vehicleoptions, "---> Helicopter Options <---")
 			menu.action(vehicleoptions, "Disable Auto-Stablization", {}, "", function ()
 				local CflyingHandling = get_sub_handling_types(entities.get_user_vehicle_as_handle(), 1)
@@ -2079,6 +2048,24 @@
 					end end)
 			menu.action(miscoptions, "Custom Fake Banner", {"banner"}, "", function(on_click) menu.show_command_box("banner ") end, function(text)
 				custom_alert(text)end)
+			menu.toggle_loop(miscoptions, "Hands Up", {}, "Press: X", function(toggled)
+				if PAD.IS_CONTROL_PRESSED(1, 323) then
+					while not STREAMING.HAS_ANIM_DICT_LOADED("random@mugging3") do
+						STREAMING.REQUEST_ANIM_DICT("random@mugging3")
+						util.yield(100)
+					end
+					if not ENTITY.IS_ENTITY_PLAYING_ANIM(PLAYER.PLAYER_PED_ID(), "random@mugging3", "handsup_standing_base", 3) then
+						--WEAPON.SET_CURRENT_PED_WEAPON(PLAYER.PLAYER_PED_ID(), MISC.GET_HASH_KEY("WEAPON_UNARMED"), true)
+						TASK.TASK_PLAY_ANIM(PLAYER.PLAYER_PED_ID(), "random@mugging3", "handsup_standing_base", 3, 3, -1, 51, 0, false, false, false)
+						STREAMING.REMOVE_ANIM_DICT("random@mugging3")
+						PED.SET_ENABLE_HANDCUFFS(PLAYER.PLAYER_PED_ID(), true)
+					end
+				end
+				if PAD.IS_CONTROL_RELEASED(1, 323) and ENTITY.IS_ENTITY_PLAYING_ANIM(PLAYER.PLAYER_PED_ID(), "random@mugging3", "handsup_standing_base", 3) then
+					TASK.CLEAR_PED_SECONDARY_TASK(PLAYER.PLAYER_PED_ID())
+					PED.SET_ENABLE_HANDCUFFS(PLAYER.PLAYER_PED_ID(), false)
+				end
+				util.yield()end)
 			menu.divider(miscoptions, "---> Lobby Settings <---")	
 			menu.list_action(miscoptions, "Clear All...", {}, "", {"Peds", "Vehicles", "Objects", "Pickups", "Ropes", "Projectiles", "Sounds"}, function(index, name)
 				util.toast("Clearing "..name:lower().."...")
