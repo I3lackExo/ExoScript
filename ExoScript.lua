@@ -13,7 +13,7 @@
 
 	-- [[ Locals ]]
 		local Name = "ExoScript for Stand"
-		local Version = 4.17
+		local Version = 4.18
 		local DevName = "I3lackExo."
 		local GTAOVersion = "1.67"
 		require("lib/C4tScripts/Natives")
@@ -1106,6 +1106,23 @@
 			return string.gsub(text, "%s", "+")end
 		local function web_decode(text)
 			return string.gsub(text, "+", " ")end
+		local function RequestModel(hash, timeout)
+			timeout = timeout or 3
+			STREAMING.REQUEST_MODEL(hash)
+			local end_time = os.time() + timeout
+			repeat
+				util.yield()
+			until STREAMING.HAS_MODEL_LOADED(hash) or os.time() >= end_time
+			return STREAMING.HAS_MODEL_LOADED(hash)end
+		local function StandUser(pid)
+			if players.exists(pid) and pid != players.user() then
+				for menu.player_root(pid):getChildren() as cmd do
+					if cmd:getType() == COMMAND_LIST_CUSTOM_SPECIAL_MEANING and cmd:refByRelPath("Stand User"):isValid() then
+						return true
+					end
+				end
+			end
+			return false end
 		local function google_translate(text, to_lang, pid, outgoing)
 			if players_on_cooldown[pid] == nil then
 				local encoded_text = encode_for_web(text)
@@ -1754,6 +1771,22 @@
 					end
 				end end)
 			menu.divider(onlineoptions, "---> Blocks <---")
+			menu.toggle_loop(onlineoptions, "Block Orbital Cannon", {}, "", function()
+				local mdl = util.joaat("h4_prop_h4_garage_door_01a")
+				RequestModel(mdl)
+				if orb_obj == nil or not ENTITY.DOES_ENTITY_EXIST(orb_obj) then
+					orb_obj = entities.create_object(mdl, v3(335.9, 4833.9, -59.0))
+					entities.set_can_migrate(orb_obj, false)
+					ENTITY.SET_ENTITY_HEADING(orb_obj, 125.0)
+					ENTITY.FREEZE_ENTITY_POSITION(orb_obj, true)
+					ENTITY.SET_ENTITY_NO_COLLISION_ENTITY(orb_obj, players.user_ped(), false)
+					ENTITY.SET_ENTITY_NO_COLLISION_ENTITY(players.user_ped(), orb_obj, false)
+				end
+					util.yield(50)
+				end, function()
+					if orb_obj != nil then
+						entities.delete(orb_obj)
+					end end)
 			menu.toggle(onlineoptions, "Block Scripthost Migration", {}, "Only works when you are the host.", function(on)
 				if util.is_session_started() and NETWORK.NETWORK_IS_HOST() then
 					NETWORK.NETWORK_PREVENT_SCRIPT_HOST_MIGRATION()
@@ -1800,16 +1833,31 @@
 						end
 					end
 			menu.divider(weaponsoptions, "---> Buffs <---")
-				menu.toggle_loop(weaponsoptions, "Max Auto-Aim Range", {""}, "", function()
-					PLAYER.SET_PLAYER_LOCKON_RANGE_OVERRIDE(players.user(), 99999999.0)end)
-				menu.toggle(weaponsoptions, "Better Precision Rifle", {}, "", function(on_toggle)
-					if on_toggle then
-						menu.trigger_commands("damagemultiplier".." ".."1.60")
-						menu.trigger_commands("rangemultiplier".." ".."1.50")
-					else
-						menu.trigger_commands("damagemultiplier".." ".."1.00")
-						menu.trigger_commands("rangemultiplier".." ".."1.00")
-					end end)
+			menu.toggle_loop(weaponsoptions, "Double Tap", {""}, "", function()
+				if PED.IS_PED_SHOOTING(players.user_ped()) then
+					PED.FORCE_PED_AI_AND_ANIMATION_UPDATE(players.user_ped())
+				end end)
+			menu.toggle_loop(weaponsoptions, "Bypass Imani Tech Anti-Lockon", {""}, "", function()
+				for players.list_except() as pid do
+					local ped = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(pid)
+					local vehicle = PED.GET_VEHICLE_PED_IS_IN(ped)
+					if not PED.IS_PED_IN_ANY_VEHICLE(ped) then 
+						continue 
+					end
+					if memory.read_byte(entities.handle_to_pointer(vehicle) + 0xA9E) == 0 then
+						memory.write_byte((entities.handle_to_pointer(vehicle) + 0xA9E), 1) 
+					end
+				end end)
+			menu.toggle_loop(weaponsoptions, "Inf. Lock-on Range", {""}, "Homing missles and auto aim", function()
+				PLAYER.SET_PLAYER_LOCKON_RANGE_OVERRIDE(players.user(), 99999999.0)end)
+			menu.toggle(weaponsoptions, "Better Precision Rifle", {}, "", function(on_toggle)
+				if on_toggle then
+					menu.trigger_commands("damagemultiplier".." ".."1.60")
+					menu.trigger_commands("rangemultiplier".." ".."1.50")
+				else
+					menu.trigger_commands("damagemultiplier".." ".."1.00")
+					menu.trigger_commands("rangemultiplier".." ".."1.00")
+				end end)
 			
 		vehicleoptions = menu.list(menu.my_root(), "> Vehicle Options", {}, "", function(); end)
 			menu.divider(vehicleoptions, "---> Zeromenu Drifting <---")
@@ -2353,7 +2401,7 @@
 					end end)
 				menu.divider(main, "---> "..PLAYER.GET_PLAYER_NAME(pid).." | RID: "..players.get_rockstar_id(pid).." <---")
 			
-				phistory = menu.list(menu.player_root(pid), "> Player History", {}, "", function(); end)
+			phistory = menu.list(menu.player_root(pid), "> Player History", {}, "", function(); end)
 				menu.divider(phistory, "---> Add to Player History <---")
 				menu.action(phistory, "Add to Friendlist", {"addfriend"}, "", function(on)
 					if players.exists(pid) then
@@ -2415,12 +2463,7 @@
 					fire.add_explosion(player.get_player_coords(pid), 59, 1000000, 1, 1, 0, false, player.get_player_ped(player.player_id()))
 					fire.add_explosion(player.get_player_coords(pid), 59, 1000000, 1, 1, 0, false, player.get_player_ped(player.player_id()))
 					graphics.start_networked_ptfx_non_looped_at_coord("scr_xm_orbital_blast", player.get_player_coords(pid), v3(0, 180, 0), 1, true, true, true)end)
-			menu.divider(trolling, "---> Tryharder Trolling <---")
-				--[[menu.action(trolling, "Remove Explosive Sniper", {"ptexplo"}, "", function(on)
-					WEAPON.REMOVE_WEAPON_FROM_PED(PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(pid), 0xA914799)
-					WEAPON.GIVE_WEAPON_TO_PED(PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(pid), 0xA914799)
-					--Assistant("> I removed explosive sniper from " .. PLAYER.GET_PLAYER_NAME(pid), colors.green)end)
-					util.toast("[Mira] <3\n".."> I removed explosive sniper from "..PLAYER.GET_PLAYER_NAME(pid))end)]]
+				menu.divider(trolling, "---> Tryharder Trolling <---")
 				menu.action(trolling, "Remove Explosive Shit", {}, "", function(on)
 					WEAPON.REMOVE_WEAPON_FROM_PED(PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(pid), 0xA914799)
 					WEAPON.GIVE_WEAPON_TO_PED(PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(pid), 0xA914799)
@@ -2432,26 +2475,7 @@
 					WEAPON.REMOVE_WEAPON_FROM_PED(PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(pid), 0xA914799)
 					WEAPON.REMOVE_WEAPON_FROM_PED(PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(pid), 0x6D544C99)
 					WEAPON.REMOVE_WEAPON_FROM_PED(PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(pid), 0xFEA23564)end)
-				--[[menu.toggle_loop(trolling, "Remove Explosive Sniper (Loop)", {}, "", function(on)
-					WEAPON.REMOVE_WEAPON_FROM_PED(PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(pid), 0xA914799)
-					--Assistant("> I removed explosive sniper from " .. PLAYER.GET_PLAYER_NAME(pid), colors.green)end)
-					--util.toast("[Mira<3]\n".."> I removed explosive sniper from "..PLAYER.GET_PLAYER_NAME(pid))
-					end)
-				menu.action(trolling, "Remove Railgun", {"ptrailgun"}, "", function(on)
-					WEAPON.REMOVE_WEAPON_FROM_PED(PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(pid), 0x6D544C99)
-					WEAPON.REMOVE_WEAPON_FROM_PED(PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(pid), 0xFEA23564)
-					--Assistant("> I removed explosive sniper from " .. PLAYER.GET_PLAYER_NAME(pid), colors.green)end)
-					util.toast("[Mira] <3\n".."> I removed the railgun from "..PLAYER.GET_PLAYER_NAME(pid))end)
-				menu.toggle_loop(trolling, "Remove Railgun (Loop)", {}, "", function(on)
-					WEAPON.REMOVE_WEAPON_FROM_PED(PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(pid), 0x6D544C99)
-					WEAPON.REMOVE_WEAPON_FROM_PED(PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(pid), 0xFEA23564)
-					--Assistant("> I removed explosive sniper from " .. PLAYER.GET_PLAYER_NAME(pid), colors.green)end)
-					--util.toast("[Mira<3]\n".."> I removed the railgun from "..PLAYER.GET_PLAYER_NAME(pid))
-					end)]]
 				menu.divider(trolling, "---> Trolling Options <---")
-				--[[menu.toggle_loop(trolling, "Black Screen", {}, "", function()
-					util.trigger_script_event(1 << pid, {-555356783, pid, math.random(1, 32), 32, NETWORK.NETWORK_HASH_FROM_PLAYER_HANDLE(pid), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0})
-					util.yield(1000)end)]]
 				soundspam = menu.list(trolling, "> Sound Spam", {}, "")
 					menu.toggle_loop(soundspam, "SMS Spam", {}, "", function()
 						util.trigger_script_event(1 << pid, {1670832796, pid, math.random(-2147483647, 2147483647)})end)
@@ -2495,17 +2519,35 @@
 							AUDIO.SET_VEH_RADIO_STATION(player_veh, radio_name)
 						end
 					end end)
-				--[[menu.divider(trolling, "---> Wannabe Orbital Strike <---")
-					menu.action(trolling, "Send Orb", {}, "", function(on)
-						GRAPHICS.USE_PARTICLE_FX_ASSET("scr_xm_orbital")
-					while not STREAMING.HAS_NAMED_PTFX_ASSET_LOADED("scr_xm_orbital") do
-						STREAMING.REQUEST_NAMED_PTFX_ASSET("scr_xm_orbital")
-						util.yield(0)
+				local lockon
+				menu.toggle_loop(trolling, "Lock On Sound", {""}, "", function()
+					local ped = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(pid)
+					local vehicle = PED.GET_VEHICLE_PED_IS_IN(ped, false)
+					if not PED.IS_PED_IN_ANY_VEHICLE(ped, false) then
+						util.toast(lang.get_localised(1067523721):gsub("{}", players.get_name(pid)))
+						lockon.value = false
+						return 
 					end
-					audio.play_sound_from_coord(1, "DLC_XM_Explosions_Orbital_Cannon", player.get_player_coords(pid), 0, true, 0, false)
-					fire.add_explosion(player.get_player_coords(pid), 59, true, false, 1, PLAYER.GET_PLAYER_PED(pid))
-					graphics.start_networked_ptfx_non_looped_at_coord("scr_xm_orbital_blast", player.get_player_coords(pid), v3(0, 180, 0), 1, true, true, true)
-					end)]]	
+					VEHICLE.SET_VEHICLE_HOMING_LOCKEDONTO_STATE(vehicle, 1)end)
+				menu.toggle_loop(trolling, "Smokescreen", {""}, "Fills up their screen with black smoke.", function()
+						if smoke_notif then
+							if StandUser(pid) then 
+								toast(lang.get_localised(1729001290))
+								smoke_notif = false
+							end
+						end
+						local ped = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(pid)
+						STREAMING.REQUEST_NAMED_PTFX_ASSET("scr_as_trans")
+						GRAPHICS.USE_PARTICLE_FX_ASSET("scr_as_trans")
+						if ptfx == nil or not GRAPHICS.DOES_PARTICLE_FX_LOOPED_EXIST(ptfx) then
+							ptfx = GRAPHICS.START_NETWORKED_PARTICLE_FX_LOOPED_ON_ENTITY("scr_as_trans_smoke", ped, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.0, false, false, false, 0, 0, 0, 255)
+						end
+					end, function()
+						local ped = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(pid)
+						GRAPHICS.REMOVE_PARTICLE_FX(ptfx)
+						STREAMING.REMOVE_NAMED_PTFX_ASSET("scr_as_trans")
+					end)
+
 				menu.divider(trolling, "---> PVP Options <---")
 				menu.action(trolling, "Disable Ghost", {"ptghost"}, "", function(on)
 					--Assistant("> Please wait, while I transfer the bounty.\n\n> Target: "..PLAYER.GET_PLAYER_NAME(pid), colors.blue)
