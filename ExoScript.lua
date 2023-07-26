@@ -13,7 +13,7 @@
 
 	-- [[ Locals ]]
 		local Name = "ExoScript for Stand"
-		local Version = 4.18
+		local Version = 4.19
 		local DevName = "I3lackExo."
 		local GTAOVersion = "1.67"
 		require("lib/C4tScripts/Natives")
@@ -1848,6 +1848,15 @@
 						memory.write_byte((entities.handle_to_pointer(vehicle) + 0xA9E), 1) 
 					end
 				end end)
+			menu.toggle_loop(weaponsoptions, "ESP While Aiming", {""}, "", function()
+				if PLAYER.IS_PLAYER_FREE_AIMING(players.user()) then
+					menu.trigger_command(menu.ref_by_path("World>Inhabitants>Player ESP>Bone ESP>Low Latency Rendering"))
+				else
+					menu.trigger_command(menu.ref_by_path("World>Inhabitants>Player ESP>Bone ESP>Disabled"))
+				end
+				end, function()
+					menu.trigger_command(menu.ref_by_path("World>Inhabitants>Player ESP>Bone ESP>Disabled"))
+				end)
 			menu.toggle_loop(weaponsoptions, "Inf. Lock-on Range", {""}, "Homing missles and auto aim", function()
 				PLAYER.SET_PLAYER_LOCKON_RANGE_OVERRIDE(players.user(), 99999999.0)end)
 			menu.toggle(weaponsoptions, "Better Precision Rifle", {}, "", function(on_toggle)
