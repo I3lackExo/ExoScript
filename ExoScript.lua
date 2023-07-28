@@ -13,7 +13,7 @@
 
 	-- [[ Locals ]]
 		local Name = "ExoScript for Stand"
-		local Version = 4.19
+		local Version = 4.2
 		local DevName = "I3lackExo."
 		local GTAOVersion = "1.67"
 		require("lib/C4tScripts/Natives")
@@ -2573,7 +2573,7 @@
 					if NETWORK.NETWORK_IS_HOST() then
 						local ip = players.get_connect_ip(pid)
 						local name = PLAYER.GET_PLAYER_NAME(pid)
-						log("[Mira] <3 / Host Kick: (Playername: "..name.." / RID: "..players.get_rockstar_id(pid)..")")
+						log("Host Kick: (Playername: "..name.." / RID: "..players.get_rockstar_id(pid)..")")
 						NETWORK.NETWORK_SESSION_KICK_PLAYER(pid)
 					end end)
 				menu.action(crash, "Orbital Host Kick", {"orbhost"}, "Orbital Host Kick and logs player data in C4tScripts/Log.log", function()
@@ -2581,7 +2581,7 @@
 					if NETWORK.NETWORK_IS_HOST() then
 						local ip = players.get_connect_ip(pid)
 						local name = PLAYER.GET_PLAYER_NAME(pid)
-						log("[Mira] <3 / Orbital Host Kick: (Playername: "..name.." / RID: "..players.get_rockstar_id(pid)..")")
+						log("Host Kick: (Playername: "..name.." / RID: "..players.get_rockstar_id(pid)..")")
 						graphics.set_next_ptfx_asset("scr_xm_orbital")
 						while not graphics.has_named_ptfx_asset_loaded("scr_xm_orbital") do
 							graphics.request_named_ptfx_asset("scr_xm_orbital")
@@ -2649,7 +2649,7 @@
 				menu.action(menu.player_root(pid), "Save Playerdata", {}, "", function(on)
 					local ip = players.get_connect_ip(pid)
 					local name = PLAYER.GET_PLAYER_NAME(pid)
-					history("[Mira] <3 / Saved Playerdata: (Playername: "..name.." / RID: "..players.get_rockstar_id(pid).." / IP: "..string.format("%i.%i.%i.%i)", ip >> 24 & 255, ip >> 16 & 255, ip >> 8 & 255, ip & 255))
+					history("Saved Playerdata: (Playername: "..name.." / RID: "..players.get_rockstar_id(pid).." / IP: "..string.format("%i.%i.%i.%i)", ip >> 24 & 255, ip >> 16 & 255, ip >> 8 & 255, ip & 255))
 					util.toast("[Mira] <3\n".."> I have saved you all the important data of the player ("..name..").")
 				end)
 				menu.action(menu.player_root(pid), "Paste IP in NordVPN Tracker", {}, "", function(on)
