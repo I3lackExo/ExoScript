@@ -13,7 +13,7 @@
 
 	-- [[ Locals ]]
 		local Name = "ExoScript for Stand"
-		local Version = 4.2
+		local Version = 4.21
 		local DevName = "I3lackExo."
 		local GTAOVersion = "1.67"
 		require("lib/C4tScripts/Natives")
@@ -638,6 +638,10 @@
 					return "x:"..self.x.." y:"..self.y.." z:"..self.z
 				end,}
 
+			vehicle = {create_vehicle = function (hash, pos, heading, networked, alwaysFalse)
+				local veh = entities.create_vehicle(hash, pos, heading)
+				ENTITY._SET_ENTITY_CLEANUP_BY_ENGINE(veh, true)
+				return veh end}
 			entity = {get_entity_model_hash = function (veh)
 				return int_to_uint(ENTITY.GET_ENTITY_MODEL(veh))end}
 			audio = {play_sound_from_coord = function (soundId, audioName, pos, audioRef, isNetwork, range, p8)
@@ -2472,6 +2476,26 @@
 					fire.add_explosion(player.get_player_coords(pid), 59, 1000000, 1, 1, 0, false, player.get_player_ped(player.player_id()))
 					fire.add_explosion(player.get_player_coords(pid), 59, 1000000, 1, 1, 0, false, player.get_player_ped(player.player_id()))
 					graphics.start_networked_ptfx_non_looped_at_coord("scr_xm_orbital_blast", player.get_player_coords(pid), v3(0, 180, 0), 1, true, true, true)end)
+				menu.toggle(twotakeone, "Spam Cargoplanes", {}, "", function(on)
+					if on then
+						local pos = player.get_player_coords(pid)
+						local veh_hash = 0x15F27762
+						STREAMING.REQUEST_MODEL(veh_hash)
+						while (not STREAMING.HAS_MODEL_LOADED(veh_hash)) do
+						util.yield(10)
+						end
+						local tableOfVehicles = {}
+						for i = 1, 75 do
+						  tableOfVehicles[#tableOfVehicles + 1] = vehicle.create_vehicle(veh_hash, pos, pos.z, true, false)
+						end
+						util.yield(1000)
+						for i = 1, #tableOfVehicles do
+						  entities.delete_by_handle(tableOfVehicles[i])
+						end
+						tableOfVehicles = {}
+						STREAMING.SET_MODEL_AS_NO_LONGER_NEEDED(veh_hash)
+						end
+					return HANDLER_CONTINUE end)
 				menu.divider(trolling, "---> Tryharder Trolling <---")
 				menu.action(trolling, "Remove Explosive Shit", {}, "", function(on)
 					WEAPON.REMOVE_WEAPON_FROM_PED(PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(pid), 0xA914799)
