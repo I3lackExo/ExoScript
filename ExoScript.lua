@@ -2,7 +2,7 @@
 -- Welcome to "ExoScript"! Dont copy or use it as your script.
 -- Warning: Codes were taken from other scripts and are therefore not my codes. DO NOT PUBLISH THE SCRIPT!
 -- Link: https://forge.plebmasters.de/objects?search=firework
--- Creater: I3lackExo.
+-- Creator: I3lackExo.
 ----------------------------------------------------------------------------------------------------------
 	-- Rocket = ind_prop_firework_01 - scr_indep_firework_starburst - place_firework_1_rocket
 	-- Cone = ind_prop_firework_02 - scr_indep_firework_shotburst - place_firework_2_cylinder
@@ -13,7 +13,7 @@
 
 	-- [[ Locals ]]
 		local Name = "ExoScript for Stand"
-		local Version = 4.21
+		local Version = 4.22
 		local DevName = "I3lackExo."
 		local GTAOVersion = "1.67"
 		require("lib/C4tScripts/Natives")
@@ -158,6 +158,11 @@
 		local thrust_offset = 0x8
 		local better_heli_handling_offsets = {["fYawMult"] = 0x18, ["fYawStabilise"] = 0x20, ["fSideSlipMult"] = 0x24, ["fRollStabilise"] = 0x30, ["fAttackLiftMult"] = 0x48, ["fAttackDiveMult"] = 0x4C, ["fWindMult"] = 0x58, ["fPitchStabilise"] = 0x3C}
 		local values = {[0] = 0, [1] = 50, [2] = 88, [3] = 160, [4] = 208,}
+		local interiors = {
+			{"Safe Space [AFK Room]", {x=-158.71494, y=-982.75885, z=149.13135}},
+			{"Snipespot-LosStantos (Glitched)", {x=402.0445, y=-970.0147, z=-99.00417}},
+			{"Snipespot-1 (Glitched)", {x=-1088.6375, y=-2721.819, z=13.978062}},
+			{"Snipespot-2 (Glitched)", {x=-1280.4398, y=-2655.9102, z=14.045677}},}
 		local station_name = {
 			["Blaine County Radio"] = "RADIO_11_TALK_02", 
 			["The Blue Ark"] = "RADIO_12_REGGAE",
@@ -638,6 +643,7 @@
 					return "x:"..self.x.." y:"..self.y.." z:"..self.z
 				end,}
 
+		-- [[ 2Take1 Compat ]] 
 			vehicle = {create_vehicle = function (hash, pos, heading, networked, alwaysFalse)
 				local veh = entities.create_vehicle(hash, pos, heading)
 				ENTITY._SET_ENTITY_CLEANUP_BY_ENGINE(veh, true)
@@ -1599,15 +1605,6 @@
 						WEAPON.SET_CURRENT_PED_WEAPON(players.user_ped(), MISC.GET_HASH_KEY("WEAPON_UNARMED"), true)
 						TASK.TASK_PLAY_ANIM(players.user_ped(), dict, name, 8.0, 8.0, -1, 1, 0, false, false, false)end)
 			menu.divider(selfoptions, "~~~> PVP Options <~~~")
-			--[[menu.toggle_loop(selfoptions, "Better EWO", {}, "Hotkey for EWO is F5.", function()
-				if PAD.IS_CONTROL_PRESSED(1, 327) then
-					graphics.set_next_ptfx_asset("core")
-					while not graphics.has_named_ptfx_asset_loaded("core") do
-						graphics.request_named_ptfx_asset("core")
-						util.yield(0)
-					end
-					fire.add_explosion(player.get_player_coords(player.player_id()), 2, 1, 1, false, 0, false, player.get_player_ped(player.player_id()))end end)
-					graphics.start_networked_ptfx_non_looped_at_coord("exp_grd_sticky_lod", player.get_player_coords(player.player_id()), v3(0, 180, 0), 1, true, true, true)]]
 			menu.toggle_loop(selfoptions, "Refill Snacks & Armours Automatically", {}, "", function(toggled)
 				STAT_SET_INT("NO_BOUGHT_YUM_SNACKS", 30)
 				STAT_SET_INT("NO_BOUGHT_HEALTH_SNACKS", 15)
@@ -1620,12 +1617,25 @@
 				STAT_SET_INT("MP_CHAR_ARMOUR_3_COUNT", 10)
 				STAT_SET_INT("MP_CHAR_ARMOUR_4_COUNT", 10)
 				STAT_SET_INT("MP_CHAR_ARMOUR_5_COUNT", 10)end)
+			menu.toggle_loop(selfoptions, "Fast Respawn", {}, "", function()
+				local gwobaw = memory.script_global(2672524 + 1685 + 756) -- Global_2672524.f_1685.f_756
+					if PED.IS_PED_DEAD_OR_DYING(players.user_ped()) then
+						GRAPHICS.ANIMPOSTFX_STOP_ALL()
+						memory.write_int(gwobaw, memory.read_int(gwobaw) | 1 << 1)
+					end
+				end, function()
+					local gwobaw = memory.script_global(2672524 + 1685 + 756)
+					memory.write_int(gwobaw, memory.read_int(gwobaw) &~ (1 << 1))
+				end)
 			menu.toggle_loop(selfoptions, "Reload when rolling", {}, "Reloads your weapon when doing a roll.", function()
 				if TASK.GET_IS_TASK_ACTIVE(players.user_ped(), 4) and PAD.IS_CONTROL_PRESSED(22, 22) and not PED.IS_PED_SHOOTING(players.user_ped())  then --checking if player is rolling
 					util.yield(900)
 					WEAPON.REFILL_AMMO_INSTANTLY(players.user_ped())
 				end end)
-			menu.toggle_loop(selfoptions, "Instant Respawn", {}, "", function()
+			menu.toggle_loop(selfoptions, "Fast Roll (PS3)", {}, "", function()
+				STATS.STAT_SET_INT(util.joaat("MP0_SHOOTING_ABILITY"), 200, true) end)
+
+			--[[menu.toggle_loop(selfoptions, "Instant Respawn", {}, "", function()
 				if util.is_session_started() then
 					if ENTITY.IS_ENTITY_DEAD(players.user_ped()) then
 						local Coords = v3.new()
@@ -1637,7 +1647,7 @@
 							util.yield(100)
 						end
 					end
-				end end)
+				end end)]]
 
 		onlineoptions = menu.list(menu.my_root(), "> Online Options", {}, "", function(); end)
 			menu.divider(onlineoptions, "---> Online Options <---")
@@ -1682,6 +1692,21 @@
 							util.yield(250)
 						end
 					end end)
+			teleportoptions = menu.list(onlineoptions, "> Teleport Options", {}, "", function(); end)
+			menu.divider(teleportoptions, "---> Teleports <---")
+			for index, data in interiors do
+				local location_name = data[1]
+				local location_coords = data[2]
+				menu.action(teleportoptions, location_name, {}, "", function()
+					menu.trigger_commands("doors on")
+					menu.trigger_commands("nodeathbarriers on")
+					menu.trigger_commands("otr".." ".."on")
+					menu.trigger_commands("invisibility".." ".."on")
+					util.yield(1000)
+					ENTITY.SET_ENTITY_COORDS_NO_OFFSET(players.user_ped(), location_coords.x, location_coords.y, location_coords.z, false, false, false)
+					util.yield(100)
+					menu.trigger_commands("otr".." ".."off")
+					menu.trigger_commands("invisibility".." ".."off")end)end
 			bountyoptions = menu.list(onlineoptions, "> Bounty Options", {}, "", function(); end)
 				menu.divider(bountyoptions, "---> Bounty Loop <---")
 				menu.slider(bountyoptions, "Bounty Amount", {}, "", 0, 10000, 10000, 1, function(s)
@@ -1700,17 +1725,6 @@
 							until bounty == nil
 							util.toast("[Mira] <3\n".."> Bounty has been claimed.")
 						end end)
-				--[[menu.action(bountyoptions, "Remove Bounty", {"ptbounty"}, "", function(on)
-					if memory.read_int(memory.script_global(1835502 + 4 + 1 + (players.user() * 3))) == 1 then 
-						memory.write_int(memory.script_global(2815059 + 1856 + 17), -1)
-						memory.write_int(memory.script_global(2359296 + 1 + 5149 + 13), 2880000)
-						util.yield(1000)
-						--Assistant("I have removed your bounty.", colors.black)
-						util.toast("[Mira] <3\n".."> I have removed your bounty.")
-					else
-						--Assistant("Sorry, but you don't have a bounty right now which I could remove.", colors.red)
-						util.toast("[Mira] <3\n".."> Sorry, but you don't have a bounty right now which I could remove.")
-					end end)]]
 			menu.divider(onlineoptions, "---> Protections<---")
 			menu.list_select(onlineoptions, "Jammer Delay", {}, "The speed in which your name will flicker at for orbital cannon users.", {"Slow", "Medium", "Fast"}, 3, function(index, value)
 				switch value do
@@ -1775,7 +1789,7 @@
 					end
 				end end)
 			menu.divider(onlineoptions, "---> Blocks <---")
-			menu.toggle_loop(onlineoptions, "Block Orbital Cannon", {}, "", function()
+			menu.toggle_loop(onlineoptions, "Block Orbital Cannon Room", {}, "", function()
 				local mdl = util.joaat("h4_prop_h4_garage_door_01a")
 				RequestModel(mdl)
 				if orb_obj == nil or not ENTITY.DOES_ENTITY_EXIST(orb_obj) then
