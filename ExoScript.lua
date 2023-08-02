@@ -13,7 +13,7 @@
 
 	-- [[ Locals ]]
 		local Name = "ExoScript for Stand"
-		local Version = 4.23
+		local Version = 4.24
 		local DevName = "I3lackExo."
 		local GTAOVersion = "1.67"
 		require("lib/C4tScripts/Natives")
@@ -1698,8 +1698,6 @@
 				local location_name = data[1]
 				local location_coords = data[2]
 				menu.action(teleportoptions, location_name, {}, "", function()
-					menu.trigger_commands("doors on")
-					menu.trigger_commands("nodeathbarriers on")
 					menu.trigger_commands("otr".." ".."on")
 					menu.trigger_commands("invisibility".." ".."on")
 					util.yield(1000)
