@@ -13,7 +13,7 @@
 
 	-- [[ Locals ]]
 		local Name = "ExoScript for Stand"
-		local Version = 4.22
+		local Version = 4.23
 		local DevName = "I3lackExo."
 		local GTAOVersion = "1.67"
 		require("lib/C4tScripts/Natives")
@@ -1632,7 +1632,7 @@
 					util.yield(900)
 					WEAPON.REFILL_AMMO_INSTANTLY(players.user_ped())
 				end end)
-			menu.toggle_loop(selfoptions, "Fast Roll (PS3)", {}, "", function()
+			menu.toggle_loop(selfoptions, "Modded Roll (PS3)", {}, "", function()
 				STATS.STAT_SET_INT(util.joaat("MP0_SHOOTING_ABILITY"), 200, true) end)
 
 			--[[menu.toggle_loop(selfoptions, "Instant Respawn", {}, "", function()
